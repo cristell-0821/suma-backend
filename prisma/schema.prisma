@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  POSTULANTE
+  EMPRESA
+  SUPERADMIN
+}
+
+enum ApplicationStatus {
+  ENVIADO
+  EN_REVISION
+  ENTREVISTA
+  RECHAZADO
+  CONTRATADO
+}
+
+enum Modality {
+  REMOTO
+  HIBRIDO
+  PRESENCIAL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  postulante Postulante?
+  empresa    Empresa?
+
+  @@map("users")
+}
+
+model Postulante {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Datos personales
+  nombres      String
+  apellidos    String
+  telefono     String?
+  fechaNacimiento DateTime?
+  ciudad       String?
+  
+  // Perfil profesional
+  skills       String[]
+  cvUrl        String?
+  
+  // Preferencias
+  modalidadPreferida Modality?
+  sectorPreferido    String?
+  ciudadPreferida    String?
+  
+  // Relaciones
+  disabilities Disability[]
+  applications Application[]
+  savedJobs    SavedJob[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("postulantes")
+}
+
+model Empresa {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Datos de empresa (opcionales al inicio)
+  razonSocial       String?
+  ruc               String?   @unique
+  sector            String?
+  tamaño            String?   // pequeña, mediana, grande
+  descripcion       String?
+  sitioWeb          String?
+  ciudad            String?
+  direccion         String?
+  
+  // Contacto (opcionales al inicio)
+  nombreContacto    String?
+  cargoContacto     String?
+  telefonoContacto  String?
+  
+  // Estado
+  isApproved        Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  submittedAt       DateTime @default(now())
+  approvedAt        DateTime?
+  
+  // Acomodaciones
+  accommodations    String[]
+  
+  // Relaciones
+  jobOffers         JobOffer[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("empresas")
+}
+
+model Disability {
+  id          String       @id @default(uuid())
+  nombre      String       @unique
+  descripcion String?
+  categoria   String?      // visual, auditiva, motriz, intelectual, etc.
+  
+  postulantes Postulante[]
+  jobOffers   JobOffer[]
+  
+  createdAt   DateTime     @default(now())
+
+  @@map("disabilities")
+}
+
+model JobOffer {
+  id                String   @id @default(uuid())
+  
+  // Relación con empresa
+  empresaId         String
+  empresa           Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  // Datos del puesto
+  titulo            String
+  descripcion       String
+  requisitos        String[]
+  funciones         String[]
+  
+  // Condiciones
+  modalidad         Modality
+  sector            String
+  ciudad            String
+  salarioMin        Int?
+  salarioMax        Int?
+  
+  // Estado
+  isActive          Boolean  @default(true)
+  expiresAt         DateTime?
+  
+  // Relaciones
+  disabilities      Disability[]
+  applications      Application[]
+  savedBy           SavedJob[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("job_offers")
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  
+  postulanteId String
+  postulante   Postulante        @relation(fields: [postulanteId], references: [id], onDelete: Cascade)
+  
+  jobOfferId   String
+  jobOffer     JobOffer          @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  
+  status       ApplicationStatus @default(ENVIADO)
+  mensaje      String?
+  
+  // Timeline
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([postulanteId, jobOfferId])
+  @@map("applications")
+}
+
+model SavedJob {
+  id           String     @id @default(uuid())
+  
+  postulanteId String
+  postulante   Postulante @relation(fields: [postulanteId], references: [id], onDelete: Cascade)
+  
+  jobOfferId   String
+  jobOffer     JobOffer   @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime   @default(now())
+
+  @@unique([postulanteId, jobOfferId])
+  @@map("saved_jobs")
+}
