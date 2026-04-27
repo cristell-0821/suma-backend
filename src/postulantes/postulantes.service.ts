@@ -13,8 +13,15 @@ export class PostulantesService {
         disabilities: true,
         user: {
           select: {
+            id: true,
             email: true,
             createdAt: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
+            savedJobs: true,
           },
         },
       },
@@ -24,11 +31,23 @@ export class PostulantesService {
       throw new NotFoundException('Perfil no encontrado');
     }
 
-    return postulante;
+    // Mapear _count a campos planos para el frontend
+    return {
+      ...postulante,
+      applicationsCount: postulante._count.applications,
+      savedJobsCount: postulante._count.savedJobs,
+    };
   }
 
   async updateProfile(userId: string, dto: UpdatePostulanteDto) {
-    const { disabilityIds, ...data } = dto;
+    const { disabilityIds, fechaNacimiento, ...rest } = dto;
+
+    const data: any = { ...rest };
+
+    // Convertir fecha string a Date si existe
+    if (fechaNacimiento) {
+      data.fechaNacimiento = new Date(fechaNacimiento);
+    }
 
     const postulante = await this.prisma.postulante.update({
       where: { userId },
@@ -42,6 +61,7 @@ export class PostulantesService {
       },
       include: {
         disabilities: true,
+        user: { select: { id: true, email: true } },
       },
     });
 

@@ -12,6 +12,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
+    "rootDir": "./src", 
     "outDir": "./dist",
     "incremental": true,
     "skipLibCheck": true,
