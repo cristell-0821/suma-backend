@@ -1,10 +1,25 @@
-import { Controller, Get, Put, Body, UseGuards, Query } from '@nestjs/common';
+// src/postulantes/postulantes.controller.ts
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Body,
+  UseGuards,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { PostulantesService } from './postulantes.service';
 import { UpdatePostulanteDto } from './dto/update-postulante.dto';
+import { UploadFileDto, FileType } from './dto/upload-file.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RolesGuard, Role } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import type { MulterFile } from '../types/multer'; 
 
 @Controller('postulantes')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -24,6 +39,45 @@ export class PostulantesController {
     @Body() dto: UpdatePostulanteDto,
   ) {
     return this.postulantesService.updateProfile(userId, dto);
+  }
+
+  @Post('upload')
+  @Roles(Role.POSTULANTE)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+      fileFilter: (req, file, callback) => {
+        const allowedMimes = [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+        ];
+        if (allowedMimes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new BadRequestException(
+              'Solo se permiten archivos PDF, JPG, PNG o WEBP',
+            ),
+            false,
+          );
+        }
+      },
+    }),
+  )
+  async uploadFile(
+    @CurrentUser('userId') userId: string,
+    @UploadedFile() file: MulterFile,
+    @Body() dto: UploadFileDto,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    return this.postulantesService.uploadFile(userId, file, dto.type);
   }
 
   @Get('ofertas')

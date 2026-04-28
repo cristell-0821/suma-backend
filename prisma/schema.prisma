@@ -57,12 +57,14 @@ model Postulante {
   // Perfil profesional
   skills       String[]
   cvUrl        String?
+  cvPublicId       String?
 
   sobreMi          String? 
   salarioEsperado  Int?   
   linkedin         String? 
   portfolio        String?  
   fotoPerfil       String? 
+  fotoPerfilPublicId String? 
   
   // Preferencias
   modalidadPreferida Modality?

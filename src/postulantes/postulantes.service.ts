@@ -1,10 +1,17 @@
+// src/postulantes/postulantes.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UpdatePostulanteDto } from './dto/update-postulante.dto';
+import { FileType } from './dto/upload-file.dto';
+import { MulterFile } from '../types/multer';
 
 @Injectable()
 export class PostulantesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+  ) {}
 
   async getProfile(userId: string) {
     const postulante = await this.prisma.postulante.findUnique({
@@ -31,7 +38,6 @@ export class PostulantesService {
       throw new NotFoundException('Perfil no encontrado');
     }
 
-    // Mapear _count a campos planos para el frontend
     return {
       ...postulante,
       applicationsCount: postulante._count.applications,
@@ -40,14 +46,7 @@ export class PostulantesService {
   }
 
   async updateProfile(userId: string, dto: UpdatePostulanteDto) {
-    const { disabilityIds, fechaNacimiento, ...rest } = dto;
-
-    const data: any = { ...rest };
-
-    // Convertir fecha string a Date si existe
-    if (fechaNacimiento) {
-      data.fechaNacimiento = new Date(fechaNacimiento);
-    }
+    const { disabilityIds, ...data } = dto;
 
     const postulante = await this.prisma.postulante.update({
       where: { userId },
@@ -66,6 +65,58 @@ export class PostulantesService {
     });
 
     return postulante;
+  }
+
+  async uploadFile(userId: string, file: MulterFile, type: FileType) {
+    const current = await this.prisma.postulante.findUnique({
+      where: { userId },
+      select: { cvPublicId: true, fotoPerfilPublicId: true },
+    });
+
+    const folder = type === FileType.CV ? 'suma/cvs' : 'suma/fotos-perfil';
+    const resourceType = type === FileType.CV ? 'raw' : 'auto';
+    const result = await this.cloudinary.uploadFile(file, folder, resourceType);
+console.log('🔍 secure_url:', result.secure_url);
+console.log('🔍 public_id:', result.public_id);
+    const isCv = type === FileType.CV;
+
+    // 👇 CAMBIO AQUÍ — usar nombre original con extensión para la descarga
+    const downloadName = file.originalname
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9._-]/g, '');
+
+    const url = isCv
+      ? `${result.secure_url}?dl=${downloadName}`
+      : result.secure_url;
+
+    const updateData = isCv
+      ? { cvUrl: url, cvPublicId: result.public_id }
+      : { fotoPerfil: url, fotoPerfilPublicId: result.public_id };
+
+    const oldPublicId = isCv ? current?.cvPublicId : current?.fotoPerfilPublicId;
+    if (oldPublicId) {
+      try {
+        await this.cloudinary.destroyFile(oldPublicId);
+      } catch (e) {
+        console.warn('No se pudo eliminar archivo anterior:', e.message);
+      }
+    }
+
+    const postulante = await this.prisma.postulante.update({
+      where: { userId },
+      data: updateData,
+      include: {
+        disabilities: true,
+        user: { select: { id: true, email: true } },
+      },
+    });
+
+    return {
+      url,
+      publicId: result.public_id,
+      type,
+      postulante,
+    };
   }
 
   async getJobOffers(filters: {
