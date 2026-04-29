@@ -11,15 +11,13 @@ export class CloudinaryService {
     folder: string = 'suma',
     resourceType: 'auto' | 'image' | 'video' | 'raw' = 'auto',
   ): Promise<UploadApiResponse> {
-    // 👇 Extraer nombre limpio sin extensión
-    const ext = file.originalname.split('.').pop(); // "pdf", "doc", etc.
+    const ext = file.originalname.split('.').pop(); 
 
     const originalName = file.originalname
       .replace(/\.[^/.]+$/, '')
       .replace(/\s+/g, '_')
       .replace(/[^a-zA-Z0-9._-]/g, '');
 
-    // 👇 public_id CON extensión
     const publicIdWithExt = `${originalName}.${ext}`;
 
     return new Promise((resolve, reject) => {

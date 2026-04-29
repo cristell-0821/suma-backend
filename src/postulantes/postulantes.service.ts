@@ -46,7 +46,11 @@ export class PostulantesService {
   }
 
   async updateProfile(userId: string, dto: UpdatePostulanteDto) {
-    const { disabilityIds, ...data } = dto;
+    const { disabilityIds, ...rest } = dto;
+
+    const data = Object.fromEntries(
+      Object.entries(rest).filter(([_, v]) => v !== undefined && v !== ''),
+    );
 
     const postulante = await this.prisma.postulante.update({
       where: { userId },
@@ -76,11 +80,8 @@ export class PostulantesService {
     const folder = type === FileType.CV ? 'suma/cvs' : 'suma/fotos-perfil';
     const resourceType = type === FileType.CV ? 'raw' : 'auto';
     const result = await this.cloudinary.uploadFile(file, folder, resourceType);
-console.log('🔍 secure_url:', result.secure_url);
-console.log('🔍 public_id:', result.public_id);
     const isCv = type === FileType.CV;
 
-    // 👇 CAMBIO AQUÍ — usar nombre original con extensión para la descarga
     const downloadName = file.originalname
       .replace(/\s+/g, '_')
       .replace(/[^a-zA-Z0-9._-]/g, '');
