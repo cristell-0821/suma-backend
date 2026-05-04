@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsBoolean, IsUrl } from 'class-validator';
 
 export class UpdateEmpresaDto {
   @IsString()
@@ -11,7 +11,7 @@ export class UpdateEmpresaDto {
 
   @IsString()
   @IsOptional()
-  sector?: string;
+  sectorId?: string; 
 
   @IsString()
   @IsOptional()
@@ -27,7 +27,7 @@ export class UpdateEmpresaDto {
 
   @IsString()
   @IsOptional()
-  ciudad?: string;
+  ciudadId?: string; 
 
   @IsString()
   @IsOptional()
@@ -49,4 +49,12 @@ export class UpdateEmpresaDto {
   @IsString({ each: true })
   @IsOptional()
   accommodations?: string[];
+
+  @IsUrl()
+  @IsOptional()
+  logoUrl?: string;
+
+  @IsUrl()
+  @IsOptional()
+  portadaUrl?: string;
 }

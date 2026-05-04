@@ -1,4 +1,3 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -12,6 +11,8 @@ import { AdminModule } from './admin/admin.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { DisabilitiesModule } from './disabilities/disabilities.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { LocationsModule } from './locations/locations.module';
+import { SectorsModule } from './sectors/sectors.module';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     AdminModule,
     DisabilitiesModule,
     CloudinaryModule,
+    LocationsModule,
+    SectorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

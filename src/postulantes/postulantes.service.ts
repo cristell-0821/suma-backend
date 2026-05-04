@@ -18,6 +18,17 @@ export class PostulantesService {
       where: { userId },
       include: {
         disabilities: true,
+        ciudad: {
+          include: {
+            departamento: true,
+          },
+        },
+        ciudadPreferida: {
+          include: {
+            departamento: true,
+          },
+        },
+        sector: true,
         user: {
           select: {
             id: true,
@@ -46,11 +57,23 @@ export class PostulantesService {
   }
 
   async updateProfile(userId: string, dto: UpdatePostulanteDto) {
-    const { disabilityIds, ...rest } = dto;
+    const { disabilityIds, ciudadId, ciudadPreferidaId, sectorId, ...rest } = dto;
 
-    const data = Object.fromEntries(
-      Object.entries(rest).filter(([_, v]) => v !== undefined && v !== ''),
-    );
+    const data: any = {
+      ...Object.fromEntries(
+        Object.entries(rest).filter(([_, v]) => v !== undefined),
+      ),
+    };
+
+    if (ciudadId !== undefined) {
+      data.ciudadId = ciudadId || null; 
+    }
+    if (ciudadPreferidaId !== undefined) {
+      data.ciudadPreferidaId = ciudadPreferidaId || null;
+    }
+    if (sectorId !== undefined) {
+      data.sectorId = sectorId || null;
+    }
 
     const postulante = await this.prisma.postulante.update({
       where: { userId },
@@ -64,6 +87,9 @@ export class PostulantesService {
       },
       include: {
         disabilities: true,
+        ciudad: { include: { departamento: true } },
+        ciudadPreferida: { include: { departamento: true } },
+        sector: true,
         user: { select: { id: true, email: true } },
       },
     });

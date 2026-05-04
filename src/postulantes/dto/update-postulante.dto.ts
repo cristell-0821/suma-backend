@@ -1,6 +1,6 @@
 // src/postulantes/dto/update-postulante.dto.ts
 
-import { IsString, IsOptional, IsArray, IsEnum, IsInt, IsUrl, ValidateIf } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsEnum, IsInt, IsUrl, ValidateIf, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Modality } from '@prisma/client';
 
@@ -17,9 +17,9 @@ export class UpdatePostulanteDto {
   @IsOptional()
   telefono?: string;
 
-  @IsString()
+  @IsUUID()
   @IsOptional()
-  ciudad?: string;
+  ciudadId?: string;
 
   // ← FALTABA ESTO
   @IsOptional()
@@ -67,13 +67,13 @@ export class UpdatePostulanteDto {
   @IsEnum(Modality)
   modalidadPreferida?: Modality;
 
-  @IsString()
+  @IsUUID()
   @IsOptional()
-  sectorPreferido?: string;
+  sectorId?: string;
 
-  @IsString()
+  @IsUUID()
   @IsOptional()
-  ciudadPreferida?: string;
+  ciudadPreferidaId?: string;
 
   @IsArray()
   @IsString({ each: true })

@@ -25,10 +25,10 @@ export class CreateJobOfferDto {
   modalidad: Modality;
 
   @IsString()
-  sector: string;
+  sectorId: string;
 
   @IsString()
-  ciudad: string;
+  ciudadId: string;
 
   @IsInt()
   @IsOptional()

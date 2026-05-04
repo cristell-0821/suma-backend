@@ -7,7 +7,172 @@ async function main() {
   console.log('🌱 Iniciando seed...');
 
   // ============================================
-  // 1. CREAR TIPOS DE DISCAPACIDAD
+  // 1. CREAR DEPARTAMENTOS Y CIUDADES
+  // ============================================
+  const departamentosData = [
+    {
+      nombre: 'Lima',
+      ciudades: ['Lima', 'Callao', 'San Isidro', 'Miraflores', 'Barranco', 'La Molina', 'San Borja', 'Surco', 'Comas', 'San Juan de Lurigancho'],
+    },
+    {
+      nombre: 'Arequipa',
+      ciudades: ['Arequipa', 'Cayma', 'Cerro Colorado', 'Jacobo Hunter', 'Mariano Melgar', 'Miraflores (Arequipa)', 'Paucarpata', 'Socabaya', 'Yanahuara'],
+    },
+    {
+      nombre: 'La Libertad',
+      ciudades: ['Trujillo', 'El Porvenir', 'La Esperanza', 'Laredo', 'Moche', 'Salaverry', 'Víctor Larco Herrera'],
+    },
+    {
+      nombre: 'Cusco',
+      ciudades: ['Cusco', 'San Sebastián', 'San Jerónimo', 'Wanchaq', 'Santiago'],
+    },
+    {
+      nombre: 'Junín',
+      ciudades: ['Huancayo', 'El Tambo', 'Chilca', 'San Agustín', 'San Jerónimo de Tunán'],
+    },
+    {
+      nombre: 'Piura',
+      ciudades: ['Piura', 'Castilla', 'Catacaos', 'Cura Mori', 'El Tallán', 'La Arena', 'La Unión'],
+    },
+    {
+      nombre: 'Lambayeque',
+      ciudades: ['Chiclayo', 'José Leonardo Ortiz', 'La Victoria', 'Pimentel', 'Reque', 'Santa Rosa'],
+    },
+    {
+      nombre: 'Ancash',
+      ciudades: ['Huaraz', 'Independencia', 'Jangas', 'La Libertad (Ancash)', 'Olleros', 'Paltay'],
+    },
+    {
+      nombre: 'Ica',
+      ciudades: ['Ica', 'Chincha Alta', 'Pisco', 'Palpa', 'Nazca', 'San Juan Bautista'],
+    },
+    {
+      nombre: 'Callao',
+      ciudades: ['Callao', 'Bellavista', 'Carmen de la Legua Reynoso', 'La Perla', 'La Punta', 'Ventanilla'],
+    },
+    {
+      nombre: 'Tacna',
+      ciudades: ['Tacna', 'Alto de la Alianza', 'Calana', 'Ciudad Nueva', 'Inclán', 'Pocollay'],
+    },
+    {
+      nombre: 'Moquegua',
+      ciudades: ['Moquegua', 'Samegua', 'San Cristóbal', 'Torata'],
+    },
+    {
+      nombre: 'Puno',
+      ciudades: ['Puno', 'San Antonio', 'San Sebastián', 'Juliaca', 'Yunguyo', 'Azángaro'],
+    },
+    {
+      nombre: 'Ayacucho',
+      ciudades: ['Ayacucho', 'Carmen Alto', 'Jesús Nazareno', 'San Juan Bautista', 'Socos'],
+    },
+    {
+      nombre: 'Huánuco',
+      ciudades: ['Huánuco', 'Amarilis', 'Pillco Marca', 'Yarumayo', 'Yacus'],
+    },
+    {
+      nombre: 'Cajamarca',
+      ciudades: ['Cajamarca', 'Asunción', 'Chetilla', 'Jesús', 'La Encañada', 'Namora'],
+    },
+    {
+      nombre: 'San Martín',
+      ciudades: ['Moyobamba', 'Bellavista (San Martín)', 'Nueva Cajamarca', 'Tarapoto', 'Juanjuí'],
+    },
+    {
+      nombre: 'Loreto',
+      ciudades: ['Iquitos', 'Belén', 'Punchana', 'San Juan Bautista (Loreto)', 'Yurimaguas', 'Nauta'],
+    },
+    {
+      nombre: 'Ucayali',
+      ciudades: ['Pucallpa', 'Yarinacocha', 'Manantay', 'Callería', 'Campo Verde'],
+    },
+    {
+      nombre: 'Madre de Dios',
+      ciudades: ['Puerto Maldonado', 'Iberia', 'Tahuamanu', 'Inambari'],
+    },
+    {
+      nombre: 'Tumbes',
+      ciudades: ['Tumbes', 'Aguas Verdes', 'Corrales', 'Zarumilla', 'Zorritos'],
+    },
+    {
+      nombre: 'Amazonas',
+      ciudades: ['Chachapoyas', 'Bagua', 'Utcubamba', 'Bongará', 'Luya'],
+    },
+    {
+      nombre: 'Huancavelica',
+      ciudades: ['Huancavelica', 'Acobambilla', 'Conayca', 'Cuenca', 'Mariscal Cáceres'],
+    },
+    {
+      nombre: 'Pasco',
+      ciudades: ['Cerro de Pasco', 'Chaupimarca', 'Yanacancha', 'Tinyahuarco', 'Vicco'],
+    },
+    {
+      nombre: 'Apurímac',
+      ciudades: ['Abancay', 'Andahuaylas', 'Chalhuanca', 'Curahuasi', 'Tamburco'],
+    },
+  ];
+
+  for (const dep of departamentosData) {
+    await prisma.departamento.upsert({
+      where: { nombre: dep.nombre },
+      update: {},
+      create: {
+        nombre: dep.nombre,
+        ciudades: {
+          create: dep.ciudades.map((c) => ({ nombre: c })),
+        },
+      },
+    });
+  }
+  console.log('✅ Departamentos y ciudades creados');
+
+  // Obtener IDs para usar después
+  const limaCiudad = await prisma.ciudad.findFirst({
+    where: { nombre: 'Lima', departamento: { nombre: 'Lima' } },
+  });
+  const limaId = limaCiudad!.id;
+
+  // ============================================
+  // 2. CREAR SECTORES
+  // ============================================
+  const sectoresNombres = [
+    'Tecnología',
+    'Salud',
+    'Educación',
+    'Manufactura',
+    'Retail',
+    'Servicios',
+    'Finanzas',
+    'Construcción',
+    'Logística',
+    'Turismo',
+    'Agroindustria',
+    'Energía',
+    'Medios',
+    'Legal',
+    'Ingeniería',
+    'Consultoría',
+    'ONG / Social',
+    'Gobierno',
+    'Otro',
+  ];
+
+  for (const nombre of sectoresNombres) {
+    await prisma.sector.upsert({
+      where: { nombre },
+      update: {},
+      create: { nombre },
+    });
+  }
+  console.log('✅ Sectores creados');
+
+  const tecnologiaSector = await prisma.sector.findUnique({
+    where: { nombre: 'Tecnología' },
+  });
+  const tecnologiaId = tecnologiaSector!.id;
+
+  // ============================================
+  // 3. CREAR TIPOS DE DISCAPACIDAD
   // ============================================
   const disabilities = [
     { nombre: 'Discapacidad visual', categoria: 'visual' },
@@ -30,7 +195,7 @@ async function main() {
   console.log('✅ Tipos de discapacidad creados');
 
   // ============================================
-  // 2. CREAR SUPERADMIN
+  // 4. CREAR SUPERADMIN
   // ============================================
   const superadminEmail = 'admin@suma.pe';
   const existingAdmin = await prisma.user.findUnique({
@@ -54,7 +219,7 @@ async function main() {
   }
 
   // ============================================
-  // 3. CREAR POSTULANTE CON PERFIL COMPLETO
+  // 5. CREAR POSTULANTE CON PERFIL COMPLETO
   // ============================================
   const postulanteEmail = 'postulante@test.com';
   const existingPostulante = await prisma.user.findUnique({
@@ -75,17 +240,17 @@ async function main() {
             apellidos: 'Rodríguez Quispe',
             telefono: '+51 987 654 321',
             fechaNacimiento: new Date('1995-03-15'),
-            ciudad: 'Lima',
+            ciudad: { connect: { id: limaId } },
             skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Accesibilidad Web'],
             cvUrl: 'https://storage.suma.pe/cvs/maria-rodriguez.pdf',
-            sobreMi: 'Soy una desarrolladora frontend apasionada por crear experiencias web accesibles e inclusivas. Tengo 3 años de experiencia construyendo interfaces con React y me especializo en WCAG y diseño universal. Busco un ambiente de trabajo que valore la diversidad y la inclusión.',
+            sobreMi: 'Soy una desarrolladora frontend apasionada por crear experiencias web accesibles e inclusivas.',
             salarioEsperado: 4500,
             linkedin: 'https://linkedin.com/in/maria-rodriguez-quispe',
             portfolio: 'https://mariarodriguez.dev',
             fotoPerfil: 'https://storage.suma.pe/perfiles/maria.jpg',
             modalidadPreferida: Modality.HIBRIDO,
-            sectorPreferido: 'Tecnología',
-            ciudadPreferida: 'Lima',
+            sector: { connect: { id: tecnologiaId } },
+            ciudadPreferida: { connect: { id: limaId } },
             disabilities: {
               connect: [
                 { nombre: 'Discapacidad visual' },
@@ -109,7 +274,7 @@ async function main() {
   }
 
   // ============================================
-  // 4. CREAR EMPRESA CON PERFIL COMPLETO
+  // 6. CREAR EMPRESA CON PERFIL COMPLETO
   // ============================================
   const empresaEmail = 'empresa@test.com';
   const existingEmpresa = await prisma.user.findUnique({
@@ -128,11 +293,11 @@ async function main() {
           create: {
             razonSocial: 'TechInnova S.A.C.',
             ruc: '20601234567',
-            sector: 'Tecnología',
+            sector: { connect: { id: tecnologiaId } },
             tamaño: 'mediana',
-            descripcion: 'Empresa líder en desarrollo de software con un fuerte compromiso con la inclusión laboral. Contamos con políticas de diversidad y adaptaciones de puestos de trabajo para personas con discapacidad. Creemos que la diversidad impulsa la innovación.',
+            descripcion: 'Empresa líder en desarrollo de software con un fuerte compromiso con la inclusión laboral.',
             sitioWeb: 'https://techinnova.pe',
-            ciudad: 'Lima',
+            ciudad: { connect: { id: limaId } },
             direccion: 'Av. Javier Prado Este 4200, San Isidro',
             nombreContacto: 'Carlos Mendoza',
             cargoContacto: 'Gerente de Talento',
@@ -157,7 +322,7 @@ async function main() {
   }
 
   // ============================================
-  // 5. CREAR OFERTA DE TRABAJO
+  // 7. CREAR OFERTA DE TRABAJO
   // ============================================
   if (empresaUser?.empresa) {
     const existingJob = await prisma.jobOffer.findFirst({
@@ -167,7 +332,6 @@ async function main() {
     if (!existingJob) {
       const jobOffer = await prisma.jobOffer.create({
         data: {
-          empresaId: empresaUser.empresa.id,
           titulo: 'Desarrollador Frontend React (Inclusivo)',
           descripcion: 'Buscamos un desarrollador frontend con experiencia en React para unirse a nuestro equipo de producto. Ofrecemos un ambiente inclusivo con adaptaciones para personas con discapacidad visual y motriz. Trabajarás en proyectos de impacto social.',
           requisitos: [
@@ -183,12 +347,13 @@ async function main() {
             'Mentorear a desarrolladores junior',
           ],
           modalidad: Modality.HIBRIDO,
-          sector: 'Tecnología',
-          ciudad: 'Lima',
           salarioMin: 3500,
           salarioMax: 5500,
           isActive: true,
           expiresAt: new Date('2026-06-30'),
+          empresa: { connect: { id: empresaUser.empresa.id } },
+          sector: { connect: { id: tecnologiaId } },
+          ciudad: { connect: { id: limaId } },
           disabilities: {
             connect: [
               { nombre: 'Discapacidad visual' },
@@ -200,7 +365,7 @@ async function main() {
       console.log('✅ Oferta de trabajo creada:', jobOffer.titulo);
 
       // ============================================
-      // 6. POSTULANTE APLICA A LA OFERTA
+      // 8. POSTULANTE APLICA A LA OFERTA
       // ============================================
       if (postulanteUser?.postulante) {
         const existingApplication = await prisma.application.findUnique({
@@ -218,7 +383,7 @@ async function main() {
               postulanteId: postulanteUser.postulante.id,
               jobOfferId: jobOffer.id,
               status: ApplicationStatus.ENVIADO,
-              mensaje: 'Me interesa mucho esta oportunidad. Tengo experiencia en React y accesibilidad web, y creo que puedo aportar mucho al equipo.',
+              mensaje: 'Me interesa mucho esta oportunidad. Tengo experiencia en React y accesibilidad web.',
             },
           });
           console.log('✅ Postulación creada');

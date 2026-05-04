@@ -1,19 +1,36 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
+import { FileTypeEmpresa } from './dto/upload-file.dto';
+import { MulterFile } from '../types/multer';
 
 @Injectable()
 export class EmpresasService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+  ) {}
 
   async getProfile(userId: string) {
     const empresa = await this.prisma.empresa.findUnique({
       where: { userId },
       include: {
+        sector: true,
+        ciudad: { 
+          include: {
+            departamento: true,
+          },
+        },
         user: {
           select: {
             email: true,
             createdAt: true,
+          },
+        },
+        _count: {
+          select: {
+            jobOffers: true,
           },
         },
       },
@@ -23,13 +40,35 @@ export class EmpresasService {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    return empresa;
+    return {
+      ...empresa,
+      jobOffersCount: empresa._count.jobOffers,
+    };
   }
 
   async updateProfile(userId: string, dto: UpdateEmpresaDto) {
+    const { sectorId, ciudadId, ...rest } = dto as any;
+
+    const data: any = { ...rest };
+
+    if (sectorId !== undefined) {
+      data.sector = sectorId ? { connect: { id: sectorId } } : { disconnect: true };
+    }
+    if (ciudadId !== undefined) {
+      data.ciudad = ciudadId ? { connect: { id: ciudadId } } : { disconnect: true };
+    }
+
     const empresa = await this.prisma.empresa.update({
       where: { userId },
-      data: dto,
+      data,
+      include: { 
+        sector: true,
+        ciudad: {
+          include: {
+            departamento: true,
+          },
+        },
+      },
     });
 
     return empresa;
@@ -42,5 +81,44 @@ export class EmpresasService {
     });
 
     return empresa?.isApproved || false;
+  }
+
+  // ← NUEVO: Upload de archivos (logo y portada)
+  async uploadFile(userId: string, file: MulterFile, type: FileTypeEmpresa) {
+    const current = await this.prisma.empresa.findUnique({
+      where: { userId },
+      select: { logoPublicId: true, portadaPublicId: true },
+    });
+
+    const folder = type === FileTypeEmpresa.LOGO ? 'suma/logos-empresa' : 'suma/portadas-empresa';
+    const result = await this.cloudinary.uploadFile(file, folder, 'auto');
+
+    const isLogo = type === FileTypeEmpresa.LOGO;
+
+    const updateData = isLogo
+      ? { logoUrl: result.secure_url, logoPublicId: result.public_id }
+      : { portadaUrl: result.secure_url, portadaPublicId: result.public_id };
+
+    // Eliminar archivo anterior si existe
+    const oldPublicId = isLogo ? current?.logoPublicId : current?.portadaPublicId;
+    if (oldPublicId) {
+      try {
+        await this.cloudinary.destroyFile(oldPublicId);
+      } catch (e) {
+        console.warn('No se pudo eliminar archivo anterior:', e.message);
+      }
+    }
+
+    const empresa = await this.prisma.empresa.update({
+      where: { userId },
+      data: updateData,
+    });
+
+    return {
+      url: result.secure_url,
+      publicId: result.public_id,
+      type,
+      empresa,
+    };
   }
 }
