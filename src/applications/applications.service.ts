@@ -59,6 +59,7 @@ export class ApplicationsService {
             empresa: {
               select: {
                 razonSocial: true,
+                logoUrl: true
               },
             },
           },
@@ -85,6 +86,7 @@ export class ApplicationsService {
               select: {
                 razonSocial: true,
                 isVerified: true,
+                logoUrl: true
               },
             },
           },

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
   Body,
   UseGuards,
@@ -84,15 +85,27 @@ export class PostulantesController {
   @Roles(Role.POSTULANTE)
   getJobOffers(
     @Query('modality') modality?: string,
-    @Query('sector') sector?: string,
-    @Query('city') city?: string,
+    @Query('sectorId') sectorId?: string,
+    @Query('ciudadId') ciudadId?: string,
+    @Query('departamentoId') departamentoId?: string,
     @Query('disabilityId') disabilityId?: string,
   ) {
     return this.postulantesService.getJobOffers({
       modality,
-      sector,
-      city,
+      sectorId,
+      ciudadId,
+      departamentoId,
       disabilityId,
     });
+  }
+
+  // En postulantes.controller.ts
+  @Patch('perfil/foto')
+  @Roles(Role.POSTULANTE)
+  updateProfilePhoto(
+    @CurrentUser('userId') userId: string,
+    @Body('fotoPerfil') fotoPerfil: string,
+  ) {
+    return this.postulantesService.updateProfile(userId, { fotoPerfil });
   }
 }

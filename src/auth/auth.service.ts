@@ -104,7 +104,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: '15m',
+      expiresIn: '160m',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
@@ -115,6 +115,36 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+    };
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        postulante: {
+          select: {
+            fotoPerfil: true,
+          },
+        },
+        empresa: {
+          select: {
+            logoUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    return {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      fotoPerfil: user.postulante?.fotoPerfil || null,
+      logoUrl: user.empresa?.logoUrl || null,
     };
   }
 }

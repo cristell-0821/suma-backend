@@ -148,48 +148,44 @@ export class PostulantesService {
 
   async getJobOffers(filters: {
     modality?: string;
-    sector?: string;
-    city?: string;
+    sectorId?: string;
+    ciudadId?: string;
+    departamentoId?: string;
     disabilityId?: string;
   }) {
-    const where: any = {
-      isActive: true,
-    };
+    const where: any = { isActive: true };
 
     if (filters.modality) {
       where.modalidad = filters.modality;
     }
-
-    if (filters.sector) {
-      where.sector = filters.sector;
+    if (filters.sectorId) {
+      where.sectorId = filters.sectorId;    // ← sectorId, no sector
     }
-
-    if (filters.city) {
-      where.ciudad = filters.city;
+    if (filters.ciudadId) {
+      where.ciudadId = filters.ciudadId;    // ← ciudadId, no ciudad
     }
-
+    if (filters.departamentoId) {
+      where.ciudad = {
+        departamentoId: filters.departamentoId,
+      };
+    }
     if (filters.disabilityId) {
       where.disabilities = {
-        some: {
-          id: filters.disabilityId,
-        },
+        some: { id: filters.disabilityId },
       };
     }
 
     return this.prisma.jobOffer.findMany({
       where,
       include: {
-        empresa: {
-          select: {
-            razonSocial: true,
-            isVerified: true,
-          },
-        },
+        empresa: { select: { 
+          razonSocial: true, 
+          isVerified: true,
+          logoUrl: true,
+        } },
         disabilities: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

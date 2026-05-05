@@ -1,3 +1,4 @@
+// src/auth/auth.controller.ts
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -21,10 +22,12 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: any) {
+    // ← AHORA ES async y consulta la BD
+    const profile = await this.authService.getMe(user.userId);
     return {
       message: 'Token válido',
-      user,
+      user: profile,
     };
   }
 }

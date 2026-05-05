@@ -49,6 +49,7 @@ export class JobOffersService {
           select: {
             razonSocial: true,
             isVerified: true,
+            logoUrl: true,
           },
         },
         sector: true,
@@ -86,6 +87,7 @@ export class JobOffersService {
           select: {
             razonSocial: true,
             isVerified: true,
+            logoUrl: true,
           },
         },
         sector: true,
@@ -130,6 +132,7 @@ export class JobOffersService {
             razonSocial: true,
             descripcion: true,
             isVerified: true,
+            logoUrl: true,
             sitioWeb: true,
           },
         },
@@ -200,6 +203,7 @@ export class JobOffersService {
           select: {
             razonSocial: true,
             isVerified: true,
+            logoUrl: true,
           },
         },
         sector: true,
