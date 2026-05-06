@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, UseGuards, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, Body, Patch } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard, Role } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -14,7 +14,6 @@ export class AdminController {
   @Roles(Role.SUPERADMIN)
   async getDashboard(@CurrentUser() user: any) {
     const stats = await this.adminService.getStats();
-    
     return {
       message: 'Bienvenido al panel de administración',
       admin: user,
@@ -22,6 +21,18 @@ export class AdminController {
     };
   }
 
+  // Todas las empresas (para gestión)
+  @Get('empresas')
+  @Roles(Role.SUPERADMIN)
+  async getAllCompanies() {
+    const empresas = await this.adminService.getAllCompanies();
+    return {
+      count: empresas.length,
+      empresas,
+    };
+  }
+
+  // Empresas pendientes (mantener por si acaso)
   @Get('empresas/pendientes')
   @Roles(Role.SUPERADMIN)
   async getPendingCompanies() {
@@ -32,22 +43,28 @@ export class AdminController {
     };
   }
 
-  @Post('empresas/:id/aprobar')
-  @Roles(Role.SUPERADMIN)
-  async approveCompany(@Param('id') id: string) {
-    const empresa = await this.adminService.approveCompany(id);
-    return {
-      message: 'Empresa aprobada exitosamente',
-      empresa,
-    };
-  }
-
+  // Toggle verificación
   @Post('empresas/:id/verificar')
   @Roles(Role.SUPERADMIN)
   async verifyCompany(@Param('id') id: string) {
     const empresa = await this.adminService.verifyCompany(id);
     return {
-      message: 'Empresa verificada como inclusiva',
+      message: empresa.isVerified 
+        ? 'Empresa verificada como inclusiva' 
+        : 'Verificación removida',
+      empresa,
+    };
+  }
+
+  // Toggle deshabilitar/habilitar
+  @Patch('empresas/:id/estado')
+  @Roles(Role.SUPERADMIN)
+  async toggleCompanyStatus(@Param('id') id: string) {
+    const empresa = await this.adminService.toggleCompanyStatus(id);
+    return {
+      message: empresa.isActive 
+        ? 'Empresa habilitada' 
+        : 'Empresa deshabilitada',
       empresa,
     };
   }

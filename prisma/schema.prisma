@@ -152,6 +152,7 @@ model Empresa {
   // Estado
   isApproved      Boolean  @default(false)
   isVerified      Boolean  @default(false)
+  isActive        Boolean  @default(true)
   submittedAt     DateTime @default(now())
   approvedAt      DateTime?
 

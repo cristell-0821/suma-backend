@@ -9,21 +9,48 @@ export class AdminService {
     const [
       totalPostulantes,
       totalEmpresas,
-      empresasPendientes,
+      empresasVerificadas,
       totalOfertas,
+      empresasDeshabilitadas,
     ] = await Promise.all([
       this.prisma.postulante.count(),
       this.prisma.empresa.count(),
-      this.prisma.empresa.count({ where: { isApproved: false } }),
+      this.prisma.empresa.count({ where: { isVerified: true } }),
       this.prisma.jobOffer.count(),
+      this.prisma.empresa.count({ where: { isActive: false } }),
     ]);
 
     return {
       totalPostulantes,
       totalEmpresas,
-      empresasPendientes,
+      empresasVerificadas,
       totalOfertas,
+      empresasDeshabilitadas,
     };
+  }
+
+  async getAllCompanies() {
+    return this.prisma.empresa.findMany({
+      include: {
+        user: {
+          select: {
+            email: true,
+            createdAt: true,
+            isActive: true,
+          },
+        },
+        sector: true,
+        ciudad: true,
+        _count: {
+          select: {
+            jobOffers: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async getPendingCompanies() {
@@ -53,22 +80,32 @@ export class AdminService {
     });
   }
 
-  async rejectCompany(empresaId: string) {
-    // Opcional: podrías eliminar o marcar como rechazada
+  async verifyCompany(empresaId: string) {
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+
+    if (!empresa) throw new Error('Empresa no encontrada');
+
     return this.prisma.empresa.update({
       where: { id: empresaId },
       data: {
-        isApproved: false,
-        // podrías agregar un campo `isRejected` si lo necesitas
+        isVerified: !empresa.isVerified,
       },
     });
   }
 
-  async verifyCompany(empresaId: string) {
+  async toggleCompanyStatus(empresaId: string) {
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+
+    if (!empresa) throw new Error('Empresa no encontrada');
+
     return this.prisma.empresa.update({
       where: { id: empresaId },
       data: {
-        isVerified: true,
+        isActive: !empresa.isActive,
       },
     });
   }
