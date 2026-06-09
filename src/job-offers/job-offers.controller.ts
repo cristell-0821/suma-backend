@@ -15,15 +15,17 @@ export class JobOffersController {
   @Get()
   findAll(
     @Query('modality') modality?: string,
-    @Query('sectorId') sectorId?: string,      // ← cambiado de sector
-    @Query('ciudadId') ciudadId?: string,      // ← cambiado de city
+    @Query('sectorId') sectorId?: string,
+    @Query('ciudadId') ciudadId?: string,
     @Query('disabilityId') disabilityId?: string,
+    @Query('departamentoId') departamentoId?: string,
   ) {
     return this.jobOffersService.findAll({
       modality,
       sectorId,
       ciudadId,
       disabilityId,
+      departamentoId,
     });
   }
 

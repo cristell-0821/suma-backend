@@ -1,21 +1,17 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  private prisma: PrismaClient;
 
-  constructor(private jwtService: JwtService) {
-    this.prisma = new PrismaClient();
-  }
-
-  async onModuleDestroy() {
-    await this.prisma.$disconnect();
-  }
+  constructor(
+    private jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {}
 
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -51,7 +47,6 @@ export class AuthService {
           razonSocial: '',
           ruc: '',
           nombreContacto: '',
-          isApproved: false,
         },
       });
     }

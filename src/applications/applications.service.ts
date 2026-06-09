@@ -151,18 +151,13 @@ export class ApplicationsService {
       throw new NotFoundException('Aplicación no encontrada');
     }
 
-    const validStatuses = ['ENVIADO', 'EN_REVISION', 'ENTREVISTA', 'RECHAZADO', 'CONTRATADO'];
-    if (!validStatuses.includes(newStatus)) {
-      throw new ForbiddenException('Estado no válido');
-    }
-
     return this.prisma.application.update({
-      where: { id: applicationId },
-      data: { status: newStatus },
-      include: {
-        postulante: true,
-        jobOffer: true,
-      },
+        where: { id: applicationId },
+        data: { status: newStatus },
+        include: {
+          postulante: true,
+          jobOffer: true,
+        },
     });
   }
 }

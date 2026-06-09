@@ -77,10 +77,9 @@ export class EmpresasService {
   async canPostJobs(userId: string): Promise<boolean> {
     const empresa = await this.prisma.empresa.findUnique({
       where: { userId },
-      select: { isApproved: true },
+      select: { isVerified: true },
     });
-
-    return empresa?.isApproved || false;
+    return empresa?.isVerified || false;
   }
 
   // ← NUEVO: Upload de archivos (logo y portada)
@@ -120,5 +119,44 @@ export class EmpresasService {
       type,
       empresa,
     };
+  }
+
+  async getPublicProfile(empresaId: string) {
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId, isActive: true, isVerified: true },
+      select: {
+        id: true,
+        razonSocial: true,
+        descripcion: true,
+        logoUrl: true,
+        portadaUrl: true,
+        sitioWeb: true,
+        tamaño: true,
+        direccion: true,
+        accommodations: true,
+        nombreContacto: true,     // ← agrega
+        cargoContacto: true,      // ← agrega
+        telefonoContacto: true,   // ← agrega
+        sector: { select: { nombre: true } },
+        ciudad: { select: { nombre: true, departamento: { select: { nombre: true } } } },
+        _count: { select: { jobOffers: true } },
+        jobOffers: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            titulo: true,
+            modalidad: true,
+            salarioMin: true,
+            salarioMax: true,
+            createdAt: true,
+          },
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!empresa) throw new NotFoundException('Empresa no encontrada');
+    return empresa;
   }
 }

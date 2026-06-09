@@ -152,40 +152,36 @@ export class PostulantesService {
     ciudadId?: string;
     departamentoId?: string;
     disabilityId?: string;
+    search?: string;
   }) {
     const where: any = { isActive: true };
 
-    if (filters.modality) {
-      where.modalidad = filters.modality;
+    if (filters.search) {
+      where.OR = [
+        { titulo: { contains: filters.search, mode: 'insensitive' } },
+        { descripcion: { contains: filters.search, mode: 'insensitive' } },
+        { empresa: { razonSocial: { contains: filters.search, mode: 'insensitive' } } },
+      ];
     }
-    if (filters.sectorId) {
-      where.sectorId = filters.sectorId;    // ← sectorId, no sector
-    }
-    if (filters.ciudadId) {
-      where.ciudadId = filters.ciudadId;    // ← ciudadId, no ciudad
-    }
+
+    if (filters.modality) where.modalidad = filters.modality;
+    if (filters.sectorId) where.sectorId = filters.sectorId;
+    if (filters.ciudadId) where.ciudadId = filters.ciudadId;
     if (filters.departamentoId) {
-      where.ciudad = {
-        departamentoId: filters.departamentoId,
-      };
+      where.ciudad = { departamentoId: filters.departamentoId };
     }
     if (filters.disabilityId) {
-      where.disabilities = {
-        some: { id: filters.disabilityId },
-      };
+      where.disabilities = { some: { id: filters.disabilityId } };
     }
 
     return this.prisma.jobOffer.findMany({
       where,
       include: {
-        empresa: { select: { 
-          razonSocial: true, 
-          isVerified: true,
-          logoUrl: true,
-        } },
+        empresa: { select: { razonSocial: true, isVerified: true, logoUrl: true } },
         disabilities: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: 50,
     });
   }
 }

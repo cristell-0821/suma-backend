@@ -89,6 +89,7 @@ export class PostulantesController {
     @Query('ciudadId') ciudadId?: string,
     @Query('departamentoId') departamentoId?: string,
     @Query('disabilityId') disabilityId?: string,
+    @Query('search') search?: string,
   ) {
     return this.postulantesService.getJobOffers({
       modality,
@@ -96,16 +97,16 @@ export class PostulantesController {
       ciudadId,
       departamentoId,
       disabilityId,
+      search,
     });
   }
 
-  // En postulantes.controller.ts
-  @Patch('perfil/foto')
+/*   @Patch('perfil/foto')
   @Roles(Role.POSTULANTE)
   updateProfilePhoto(
     @CurrentUser('userId') userId: string,
     @Body('fotoPerfil') fotoPerfil: string,
   ) {
     return this.postulantesService.updateProfile(userId, { fotoPerfil });
-  }
+  } */
 }

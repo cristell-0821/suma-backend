@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -19,6 +20,7 @@ import { RolesGuard, Role } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { MulterFile } from '../types/multer';
 
+// ─── Controller privado (requiere auth) ───────────────────────────────────────
 @Controller('empresas')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class EmpresasController {
@@ -39,29 +41,17 @@ export class EmpresasController {
     return this.empresasService.updateProfile(userId, dto);
   }
 
-  // ← NUEVO: Upload de logo y portada
   @Post('upload')
   @Roles(Role.EMPRESA)
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: {
-        fileSize: 2 * 1024 * 1024, // 2MB para imágenes de empresa
-      },
+      limits: { fileSize: 2 * 1024 * 1024 },
       fileFilter: (req, file, callback) => {
-        const allowedMimes = [
-          'image/jpeg',
-          'image/png',
-          'image/webp',
-        ];
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
         if (allowedMimes.includes(file.mimetype)) {
           callback(null, true);
         } else {
-          callback(
-            new BadRequestException(
-              'Solo se permiten imágenes JPG, PNG o WEBP',
-            ),
-            false,
-          );
+          callback(new BadRequestException('Solo se permiten imágenes JPG, PNG o WEBP'), false);
         }
       },
     }),
@@ -71,14 +61,22 @@ export class EmpresasController {
     @UploadedFile() file: MulterFile,
     @Body() dto: UploadFileEmpresaDto,
   ) {
-    if (!file) {
-      throw new BadRequestException('No se proporcionó ningún archivo');
-    }
-
+    if (!file) throw new BadRequestException('No se proporcionó ningún archivo');
     if (!Object.values(FileTypeEmpresa).includes(dto.type)) {
       throw new BadRequestException('Tipo de archivo no válido. Use: logo o portada');
     }
-
     return this.empresasService.uploadFile(userId, file, dto.type);
+  }
+}
+
+// ─── Controller público (sin auth) ────────────────────────────────────────────
+@Controller('empresas')
+export class EmpresasPublicController {
+  constructor(private empresasService: EmpresasService) {}
+
+  @Get(':id/publico')
+  getPublicProfile(@Param('id') id: string) {
+    console.log('ID recibido:', id);
+    return this.empresasService.getPublicProfile(id);
   }
 }

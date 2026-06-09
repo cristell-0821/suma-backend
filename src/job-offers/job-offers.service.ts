@@ -16,8 +16,8 @@ export class JobOffersService {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    if (!empresa.isApproved) {
-      throw new ForbiddenException('Tu empresa aún no ha sido aprobada');
+    if (!empresa.isVerified) {
+      throw new ForbiddenException('Tu empresa aún no ha sido verificada');
     }
 
     const { disabilityIds, sectorId, ciudadId, ...data } = dto as any;
@@ -67,6 +67,7 @@ export class JobOffersService {
     sectorId?: string;
     ciudadId?: string;
     disabilityId?: string;
+    departamentoId?: string;
   }) {
     const where: any = {
       isActive: true,
@@ -75,6 +76,9 @@ export class JobOffersService {
     if (filters.modality) where.modalidad = filters.modality;
     if (filters.sectorId) where.sectorId = filters.sectorId;
     if (filters.ciudadId) where.ciudadId = filters.ciudadId;
+    if (filters.departamentoId) {
+      where.ciudad = { departamentoId: filters.departamentoId };
+    }
     if (filters.disabilityId) {
       where.disabilities = { some: { id: filters.disabilityId } };
     }
@@ -85,6 +89,7 @@ export class JobOffersService {
         disabilities: true,
         empresa: {
           select: {
+            id: true, 
             razonSocial: true,
             isVerified: true,
             logoUrl: true,
@@ -98,6 +103,7 @@ export class JobOffersService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: 50,
     });
   }
 
@@ -129,6 +135,7 @@ export class JobOffersService {
         disabilities: true,
         empresa: {
           select: {
+            id: true, 
             razonSocial: true,
             descripcion: true,
             isVerified: true,

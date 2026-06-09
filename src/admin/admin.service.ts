@@ -31,6 +31,7 @@ export class AdminService {
 
   async getAllCompanies() {
     return this.prisma.empresa.findMany({
+      take: 50,
       include: {
         user: {
           select: {
@@ -55,28 +56,13 @@ export class AdminService {
 
   async getPendingCompanies() {
     return this.prisma.empresa.findMany({
-      where: { isApproved: false },
+      where: { isVerified: false },
       include: {
         user: {
-          select: {
-            email: true,
-            createdAt: true,
-          },
+          select: { email: true, createdAt: true },
         },
       },
-      orderBy: {
-        submittedAt: 'desc',
-      },
-    });
-  }
-
-  async approveCompany(empresaId: string) {
-    return this.prisma.empresa.update({
-      where: { id: empresaId },
-      data: {
-        isApproved: true,
-        approvedAt: new Date(),
-      },
+      orderBy: { submittedAt: 'desc' },
     });
   }
 

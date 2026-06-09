@@ -5,7 +5,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RolesGuard, Role } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { ApplicationStatus } from '.prisma/client';
+import { UpdateApplicationStatusDto } from './dto/update-application.dto';
 
 @Controller('applications')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -42,8 +42,8 @@ export class ApplicationsController {
   updateStatus(
     @CurrentUser('userId') userId: string,
     @Param('id') applicationId: string,
-    @Body('status') status: string,
+    @Body() dto: UpdateApplicationStatusDto,
   ) {
-    return this.applicationsService.updateStatus(userId, applicationId, status as ApplicationStatus,);
+    return this.applicationsService.updateStatus(userId, applicationId, dto.status);
   }
 }
